@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -9,6 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 )
+
+//go:embed index.html.tmpl
+var indexHTMLTmpl string
 
 type load struct{}
 
@@ -24,12 +28,8 @@ func (l load) run() error {
 		return fmt.Errorf("looking for synced files: %w", err)
 	}
 
-	type row struct {
-		Host, Profile string
-		Window        int
-		Title, URL    string
-	}
-	rows := []row{}
+	// host -> profile -> window -> [tab]
+	hostToMap := make(map[string]map[string]map[int][]tab)
 	for _, dataFile := range dataFiles {
 		components := strings.Split(dataFile, "/")
 		host, profile := components[len(components)-2], components[len(components)-1]
@@ -38,54 +38,29 @@ func (l load) run() error {
 		if err != nil {
 			return fmt.Errorf("reading %q: %w", dataFile, err)
 		}
+
+		profileToMap, ok := hostToMap[host]
+		if !ok {
+			profileToMap = make(map[string]map[int][]tab)
+			hostToMap[host] = profileToMap
+		}
+
 		var d data
 		if err := json.Unmarshal(bs, &d); err != nil {
 			return fmt.Errorf("unmarshalling the data file %q: %w", dataFile, err)
 		}
+
+		windowToTabs := make(map[int][]tab)
 		for _, t := range d.Tabs {
-			title := t.Title
-			if len(title) > 80 {
-				title = title[:77] + "..."
+			if len(t.Title) > 80 {
+				t.Title = t.Title[:77] + "..."
 			}
-			rows = append(rows, row{
-				Host: host, Profile: profile,
-				Window: t.Window,
-				Title:  title, URL: t.URL,
-			})
+			windowToTabs[t.Window] = append(windowToTabs[t.Window], t)
 		}
+		profileToMap[profile] = windowToTabs
 	}
 
-	const tmpl = `<!DOCTYPE html>
-<html>
-  <head>
-    <title>firefox-tabs</title>
-  </head>
-  <body>
-    <h1>firefox-tabs</h1>
-    <table>
-      <thead>
-        <tr>
-          <td>host</td>
-          <td>profile</td>
-          <td>window</td>
-          <td>link</td>
-        </tr>
-      </thead>
-      <tbody>
-        {{range .}}
-        <tr>
-          <td>{{ .Host }}</td>
-          <td>{{ .Profile }}</td>
-          <td>{{ .Window }}</td>
-          <td><a href={{ .URL }}>{{ .Title }}</a></td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
-  </body>
-</html>
-`
-	parsedTmpl, err := template.New("page").Parse(tmpl)
+	parsedIndexHTMLTmpl, err := template.New("page").Parse(indexHTMLTmpl)
 	if err != nil {
 		return fmt.Errorf("parsing the HTML template: %w", err)
 	}
@@ -93,7 +68,7 @@ func (l load) run() error {
 	if err != nil {
 		return fmt.Errorf("creating a temporary file to render: %w", err)
 	}
-	if err := parsedTmpl.Execute(f, rows); err != nil {
+	if err := parsedIndexHTMLTmpl.Execute(f, hostToMap); err != nil {
 		f.Close()
 		return fmt.Errorf("executing the HTML template: %w", err)
 	}

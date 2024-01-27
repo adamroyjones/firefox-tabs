@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>firefox-tabs</title>
+  </head>
+  <body>
+    <h1>firefox-tabs</h1>
+    {{ range $host, $profileToMap := . }}
+      <h2>Host: {{ $host }}</h2>
+      {{ range $profile, $windowToTabs := $profileToMap }}
+        <h3>Profile: {{ $profile }}</h3>
+        {{ range $window, $tabs := $windowToTabs}}
+          <h4>Window: {{ $window }}</h4>
+          <ul>
+            {{ range $index, $tab := $tabs }}
+              <li><a href={{ $tab.URL }}>{{ $tab.Title }}</a></li>
+            {{ end }}
+          </ul>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  </body>
+</html>

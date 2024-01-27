@@ -11,8 +11,7 @@ This program stores and loads the tabs of Firefox instances.
 
 ## Current status
 
-It works on my machines. I may eventually switch from a flat table to something
-tree-like, instead.
+It works on my machines. I may make this prettier.
 
 ## Why does this program exist?
 
