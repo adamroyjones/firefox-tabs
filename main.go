@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 )
 
+const version = "0.0.2"
+
 type tab struct {
 	Title string `json:"title"`
 	URL   string `json:"url"`
@@ -26,9 +28,21 @@ Usage:
     firefox-tabs store
 
   Open the tabs from to ~/.config/firefox-tabs into a browser tab:
-    firefox-tabs load`)
+    firefox-tabs load
+
+  Print version information and exit:
+    firefox-tabs -v`)
 	}
+
+	var v bool
+	flag.BoolVar(&v, "v", false, "Print version information and exit.")
 	flag.Parse()
+
+	if v {
+		fmt.Println("firefox-tabs version " + version)
+		os.Exit(0)
+	}
+
 	if flag.NArg() != 1 {
 		flag.Usage()
 		os.Exit(1)
