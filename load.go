@@ -24,7 +24,11 @@ func (l load) run() error {
 		return fmt.Errorf("looking for synced files: %w", err)
 	}
 
-	type row struct{ Host, Profile, Title, URL string }
+	type row struct {
+		Host, Profile string
+		Window        int
+		Title, URL    string
+	}
 	rows := []row{}
 	for _, dataFile := range dataFiles {
 		components := strings.Split(dataFile, "/")
@@ -39,7 +43,15 @@ func (l load) run() error {
 			return fmt.Errorf("unmarshalling the data file %q: %w", dataFile, err)
 		}
 		for _, t := range d.Tabs {
-			rows = append(rows, row{Host: host, Profile: profile, Title: t.Title, URL: t.URL})
+			title := t.Title
+			if len(title) > 80 {
+				title = title[:77] + "..."
+			}
+			rows = append(rows, row{
+				Host: host, Profile: profile,
+				Window: t.Window,
+				Title:  title, URL: t.URL,
+			})
 		}
 	}
 
@@ -55,6 +67,7 @@ func (l load) run() error {
         <tr>
           <td>host</td>
           <td>profile</td>
+          <td>window</td>
           <td>link</td>
         </tr>
       </thead>
@@ -63,6 +76,7 @@ func (l load) run() error {
         <tr>
           <td>{{ .Host }}</td>
           <td>{{ .Profile }}</td>
+          <td>{{ .Window }}</td>
           <td><a href={{ .URL }}>{{ .Title }}</a></td>
         </tr>
         {{end}}

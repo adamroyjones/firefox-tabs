@@ -1,7 +1,6 @@
 package main
 
 import (
-	"cmp"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -151,7 +150,7 @@ func (s store) extractJSON(path string) ([]byte, error) {
 		return nil, fmt.Errorf("reading the file containing tabs (%q): %w", path, err)
 	}
 
-	// This is a Mozilla LZ4 JSON file. This is structured as follows:
+	// This is a Mozilla LZ4 JSON file. This is structured as follows.
 	//
 	// - "mozLz4": A magic string to identify the format?
 	// - "0": A version number for the format?
@@ -192,14 +191,13 @@ func (s store) extractTabs(bs []byte) (tabs []tab, err error) {
 	}
 
 	out := []tab{}
-	for _, window := range d.Windows {
+	for i, window := range d.Windows {
 		for _, tab := range window.Tabs {
 			// "index" treats the array as 1-indexed, it seems.
-			out = append(out, tab.Entries[tab.Index-1])
+			t := tab.Entries[tab.Index-1]
+			t.Window = i + 1
+			out = append(out, t)
 		}
 	}
-	slices.SortFunc(out, func(fst, snd tab) int {
-		return cmp.Compare(strings.ToLower(fst.Title), strings.ToLower(snd.Title))
-	})
 	return out, nil
 }

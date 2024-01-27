@@ -10,8 +10,9 @@ import (
 const version = "0.0.2"
 
 type tab struct {
-	Title string `json:"title"`
-	URL   string `json:"url"`
+	Window int    `json:"window"`
+	Title  string `json:"title"`
+	URL    string `json:"url"`
 }
 
 type data struct {
