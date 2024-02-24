@@ -33,8 +33,9 @@ go install github.com/adamroyjones/firefox-tabs@latest
 
 The program has two commands: store and load.
 
-This program doesn't cover synchronisation or automation. For those ends, I'd
-use [syncthing](https://syncthing.net) and a systemd unit.
+This program doesn't cover synchronisation of tabs between machines or
+automation. For those ends, I'd use [syncthing](https://syncthing.net) and a
+systemd unit.
 
 ### store
 
@@ -63,4 +64,4 @@ will read out all of the files from
 ~/.config/firefox-tabs/data/
 ```
 
-and open them up as a table in Firefox.
+and open them up as a tree in Firefox.

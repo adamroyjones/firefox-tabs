@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 )
 
 //go:embed index.html.tmpl
@@ -52,8 +53,13 @@ func (l load) run() error {
 
 		windowToTabs := make(map[int][]tab)
 		for _, t := range d.Tabs {
-			if len(t.Title) > 80 {
-				t.Title = t.Title[:77] + "..."
+			if utf8.RuneCountInString(t.Title) > 80 {
+				for i := 77; i >= 0; i-- {
+					if utf8.ValidString(t.Title[:i]) {
+						t.Title = t.Title[:i] + "..."
+						break
+					}
+				}
 			}
 			windowToTabs[t.Window] = append(windowToTabs[t.Window], t)
 		}
